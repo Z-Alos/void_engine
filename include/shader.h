@@ -90,6 +90,11 @@ public:
         glUseProgram(ID);
     }
 
+    // UTILITY UNIFORM FUNCTIONS
+    void setInt(const std::string &name, int value) const {
+        glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+    }
+
 private: 
     void checkCompilationErrors(unsigned int shader, std::string type){
         int success;
