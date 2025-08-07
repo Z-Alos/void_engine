@@ -2,6 +2,7 @@
 #define SHADER_H
 #include "../vendor/glad/include/glad/glad.h"
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -14,8 +15,9 @@ class Shader {
     // > compile them
     // > show errors if any
     
-unsigned int ID;
 public:
+    unsigned int ID;
+
     // constructor
     Shader(const char* vertexPath, const char* fragmentPath){
         // Read Source      
@@ -93,6 +95,10 @@ public:
     // UTILITY UNIFORM FUNCTIONS
     void setInt(const std::string &name, int value) const {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+    }
+
+    void setMat4(const std::string &name, glm::mat4 &mat) const {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
 private: 
