@@ -1,7 +1,6 @@
 #include "../vendor/glad/include/glad/glad.h"
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
-#include <algorithm>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/quaternion_geometric.hpp>
 #include <glm/geometric.hpp>
@@ -10,8 +9,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "../include/shader.h"
+#include "./camera/camera.h"
 
-#include <cmath>
 #include <glm/trigonometric.hpp>
 #include <iostream>
 
@@ -33,13 +32,7 @@ float deltaTime = 0.0f;
 float lastFrameTime = 0.0f;
 
 // Camera
-float fov = 45.0f;
-float pitch = 0.0f;
-float yaw = -90.0f;
-
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f); // in world space it's -3 in local
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 // Mouse
 bool firstMouse = false;
@@ -195,7 +188,7 @@ int main(){
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
     // Textures
     int width, height, nrChannels;
@@ -274,11 +267,11 @@ int main(){
 
         // view 
         glm::mat4 view = glm::mat4(1.0);
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        view = camera.GetViewMatrix();
 
         // projection matrix
         glm::mat4 projection = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
 
         ourShader.use();
         ourShader.setMat4("view", view);
@@ -326,27 +319,23 @@ void process_input(GLFWwindow* window){
         glfwSetWindowShouldClose(window, true);
     }
 
-    // forward
+    // MOVEMENTS 
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
-        cameraPos += cameraSpeed * cameraFront;
+        camera.ProcessKeyboard(FORWARD, deltaTime); 
     }
-    // backward
     if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
-        cameraPos -= cameraSpeed * cameraFront;
+        camera.ProcessKeyboard(BACKWARD, deltaTime); 
     }
-    // left
     if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.ProcessKeyboard(LEFT, deltaTime); 
     }
-    // right
     if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.ProcessKeyboard(RIGHT, deltaTime); 
     }
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
-    fov -= (float)yoffset;
-    fov = std::clamp(fov, 1.0f, 50.0f);
+    camera.ProcessMouseScroll((float)yoffset);
 }
 
 void mouse_callback(GLFWwindow* window, double xPosIn, double yPosIn){
@@ -363,21 +352,9 @@ void mouse_callback(GLFWwindow* window, double xPosIn, double yPosIn){
 
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos;
+    
+    camera.ProcessMouseMovement(xoffset, yoffset);
+
     lastX = xpos;
     lastY = ypos;
-
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw += xoffset;
-    pitch += yoffset;
-    
-    // lo: -89, hi: 89 [so that we don't have to reverse the scene]
-    pitch = std::clamp(pitch, -89.0f, 89.0f);
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(front);
 }
