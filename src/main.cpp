@@ -291,8 +291,12 @@ int main(){
     Shader lightCubeShader("../src/shaders/light.vert", "../src/shaders/light.frag");
     Shader modelShader("../src/shaders/model.vert", "../src/shaders/model.frag");
 
+    Shader depthShader("../src/shaders/depth_testing_shader/depth.vert", "../src/shaders/depth_testing_shader/depth.frag");
+    Shader outlineShader("../src/shaders/outline_shader/outline.vert", "../src/shaders/outline_shader/outline.frag");
+
     // Model
-    Model backpack("../res/models/backpack/backpack.obj"); 
+    // Model backpack("../res/models/backpack/backpack.obj"); 
+    // Model backpack("../res/models/sponza/scene.gltf"); 
 
     // Textures
     unsigned int diffuseMap = loadTexture("../res/textures/container2.png");
@@ -308,8 +312,10 @@ int main(){
     lightingShader.setInt("material.specular", 1);
 
     glEnable(GL_DEPTH_TEST);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
 
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     // RENDER LOOP
     while(!glfwWindowShouldClose(window)){
         // process input
@@ -322,7 +328,7 @@ int main(){
 
         // render
         glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // view 
         glm::mat4 view = glm::mat4(1.0);
@@ -409,7 +415,6 @@ int main(){
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
 
-        glBindVertexArray(VAO);
         for(unsigned int i=0; i<10; ++i){
             model = glm::mat4(1.0);
             model = glm::translate(model, cubePositions[i]);
@@ -426,9 +431,30 @@ int main(){
             ourShader.setMat4("model", model);
 
 
+            glStencilFunc(GL_ALWAYS, 1, 0xFF);
+            glStencilMask(0xFF); 
+
+            glBindVertexArray(VAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
+            glBindVertexArray(0);
+            
+            // outline 
+            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+            glStencilMask(0x00); 
+            glDisable(GL_DEPTH_TEST);
+
+            outlineShader.use();
+            outlineShader.setMat4("view", view);
+            outlineShader.setMat4("projection", projection);
+            model = glm::scale(model, glm::vec3(1.06));
+            outlineShader.setMat4("model", model);
+            glBindVertexArray(VAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            glBindVertexArray(0);
+
+            glStencilMask(0xFF); 
+            glEnable(GL_DEPTH_TEST);
         }
-        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // LIGHT CUBE
         lightCubeShader.use();
@@ -478,9 +504,14 @@ int main(){
         modelShader.setMat4("projection", projection);
 
         model = glm::mat4(1.0f);
+        model = glm::scale(model, glm::vec3(0.01));
         modelShader.setMat4("model", model);
 
-        backpack.Draw(modelShader);
+        model = glm::mat4(1.0f);
+        modelShader.setMat4("model", model);
+
+        // backpack.Draw(modelShader);
+
 
         //-------------------------------------------------------------------
         
