@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "../include/shader.h"
+#include "../include/model.h"
 #include "./camera/camera.h"
 
 #include <glm/trigonometric.hpp>
@@ -79,12 +80,6 @@ int main(){
         return -1;
     }
     
-    glEnable(GL_DEPTH_TEST);
-
-    Shader ourShader("../src/shaders/shader.vert", "../src/shaders/shader.frag");
-    Shader lightingShader("../src/shaders/color.vert", "../src/shaders/color.frag");
-    Shader lightCubeShader("../src/shaders/light.vert", "../src/shaders/light.frag");
-
     // VERTEX DATA
     // Triangle Vertices
     // float vertices[] = {
@@ -291,8 +286,14 @@ int main(){
 
     glBindVertexArray(0);
 
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    
+    Shader ourShader("../src/shaders/shader.vert", "../src/shaders/shader.frag");
+    Shader lightingShader("../src/shaders/color.vert", "../src/shaders/color.frag");
+    Shader lightCubeShader("../src/shaders/light.vert", "../src/shaders/light.frag");
+    Shader modelShader("../src/shaders/model.vert", "../src/shaders/model.frag");
+
+    // Model
+    Model backpack("../res/models/backpack/backpack.obj"); 
+
     // Textures
     unsigned int diffuseMap = loadTexture("../res/textures/container2.png");
     unsigned int specularMap = loadTexture("../res/textures/container2_specular.png");
@@ -305,6 +306,9 @@ int main(){
     lightingShader.use();
     lightingShader.setInt("material.diffuse", 0);
     lightingShader.setInt("material.specular", 1);
+
+    glEnable(GL_DEPTH_TEST);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // RENDER LOOP
     while(!glfwWindowShouldClose(window)){
@@ -399,7 +403,6 @@ int main(){
         ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
-
         // bind diffuseMap
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -416,10 +419,12 @@ int main(){
                 angle = glfwGetTime() * 25.0f;
                 model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             }
+
             ourShader.setVec3("viewPos", camera.Position);
             ourShader.setMat4("view", view);
             ourShader.setMat4("projection", projection);
             ourShader.setMat4("model", model);
+
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
@@ -466,6 +471,16 @@ int main(){
 
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // Render Model
+        modelShader.use();
+        modelShader.setMat4("view", view);
+        modelShader.setMat4("projection", projection);
+
+        model = glm::mat4(1.0f);
+        modelShader.setMat4("model", model);
+
+        backpack.Draw(modelShader);
 
         //-------------------------------------------------------------------
         

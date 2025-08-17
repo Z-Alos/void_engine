@@ -12,19 +12,11 @@ target_include_directories(glad PUBLIC
 # Now the actual app
 add_executable(main ./src/main.cpp)
 
+find_package(assimp REQUIRED)
+
 target_include_directories(main PRIVATE
     ${CMAKE_SOURCE_DIR}/vendor/glad/include
     ${CMAKE_SOURCE_DIR}/vendor/
 )
 
-target_link_libraries(main PRIVATE glad glfw)
-
-# # Copy shaders to build directory
-# file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/texture.vs DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-# file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/texture.fs DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-#
-# #texture
-# file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/container.jpg DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-# file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/mangekyou_sharingan.png DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
-
+target_link_libraries(main PRIVATE glad glfw assimp::assimp)
