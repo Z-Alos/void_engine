@@ -8,7 +8,13 @@
 #include "../include/shader.h"
 
 #include <iostream>
+#include <map>
 using namespace std;
+
+struct BoneInfo {
+    int id;
+    glm::mat4 offset;
+};
 
 class Model {
     public:
@@ -27,13 +33,28 @@ class Model {
         vector<Texture> textures_loaded;
         string directory;
 
+        // animation
+        std::map<string, BoneInfo> m_BoneInfoMap;
+        int m_BoneCounter = 0;
+
+        auto& GetBoneInfoMap() {return m_BoneInfoMap;}
+        int& GetBoneCount() {return m_BoneCounter;}
+
+        void SetVertexBoneDataToDefault(Vertex& vertex){
+            for(int i=0; i<MAX_BONE_WEIGHTS; i++){
+                vertex.m_BoneIDs[i] = -1;
+                vertex.m_Weights[i] = 0.0f;
+            }
+        }
+
         void loadModel(string const &path){
             // Create Instance of Importer class 
             Assimp::Importer importer;
             // Let's read the file
             const aiScene* scene = importer.ReadFile(path,
                     aiProcess_CalcTangentSpace |
-                    aiProcess_Triangulate);
+                    aiProcess_Triangulate |
+                    aiProcess_FlipUVs);
 
             // if the importer failed, report it
             if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
@@ -68,6 +89,9 @@ class Model {
             for(unsigned int i=0; i<mesh->mNumVertices; i++){
                 // process vertices
                 Vertex vertex;
+
+                SetVertexBoneDataToDefault(vertex);
+
                 glm::vec3 vector;
                 vector.x = mesh->mVertices[i].x;
                 vector.y = mesh->mVertices[i].y;
@@ -114,9 +138,48 @@ class Model {
                 textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
             }
 
+            ExtractBoneWeightForVertices(vertices, mesh, scene);
+
             return Mesh(vertices, indices, textures);
         }
 
+        void SetVertexBoneData(Vertex& vertex, int boneID, float weight){
+            for(int i=0; i<MAX_BONE_WEIGHTS; ++i){
+                if(vertex.m_BoneIDs[i] < 0){
+                    vertex.m_Weights[i] = weight;
+                    vertex.m_BoneIDs[i] = boneID;
+                    break;
+                }
+            }
+        }
+
+        void ExtractBoneWeightForVertices(std::vector& vertices, aiMesh* mesh, const aiScene* scene) {
+            for(int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex){
+                int boneID = -1;
+                std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();
+                if(m_BoneInfoMap.find(boneName) == m_BoneInfoMap.end()){
+                    BoneInfo newBoneInfo;
+                    newBoneInfo.id = m_BoneCounter;
+                    newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(
+                            mesh->mBones[boneIndex]->mOffsetMatrix);
+                    m_BoneInfoMap[boneName] = newBoneInfo;
+                    boneID = m_BoneCounter;
+                    m_BoneCounter++;
+                }
+                else {
+                    boneID = m_BoneInfoMap[boneName].id;
+                }
+
+                assert(boneID != -1);
+                auto weights = mesh->mBones[boneIndex]->mWeights;
+                int numWeights = mesh->mBones[boneIndex]->mNumWeights;
+
+                for(int weightIndex = 0; weightIndex < numWeights; ++weightIndex){
+                    int vertexId = weights[weightIndex].mVertexId;
+                    float weight = weights[weightIndex].mVertexId;
+                }
+            }
+        }
 
         vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName){
             vector<Texture> textures;

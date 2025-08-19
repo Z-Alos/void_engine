@@ -77,6 +77,8 @@ public:
         if(direction == RIGHT){
             Position += glm::normalize(glm::cross(Front, Up)) * cameraSpeed;
         }
+
+        Position.y = 0.0f;
     }
 
     void ProcessMouseScroll(float yoffset){
@@ -90,7 +92,7 @@ public:
 
         Yaw += xoffset;
         Pitch += yoffset;
-        
+
         // lo: -89, hi: 89 [so that we don't have to reverse the scene]
         Pitch = glm::clamp(Pitch, -89.0f, 89.0f);
 

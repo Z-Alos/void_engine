@@ -218,6 +218,16 @@ int main(){
         glm::vec3( 0.0f,  0.0f, -3.0f)
     };
 
+    float quadVertices[] = { 
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+        1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        1.0f, -1.0f,  1.0f, 0.0f,
+        1.0f,  1.0f,  1.0f, 1.0f
+    };
     // VERTICES
     // ---------------Textured Cube-----------------
     // ---------------------------------------------
@@ -286,6 +296,22 @@ int main(){
 
     glBindVertexArray(0);
 
+    // ---------------Quad--------------------
+    // ---------------------------------------------
+    unsigned int quadVBO, quadVAO; 
+
+    glGenVertexArrays(1, &quadVBO);
+    glGenBuffers(1, &quadVBO);
+
+    glBindVertexArray(quadVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
     Shader ourShader("../src/shaders/shader.vert", "../src/shaders/shader.frag");
     Shader lightingShader("../src/shaders/color.vert", "../src/shaders/color.frag");
     Shader lightCubeShader("../src/shaders/light.vert", "../src/shaders/light.frag");
@@ -297,10 +323,13 @@ int main(){
     // Model
     // Model backpack("../res/models/backpack/backpack.obj"); 
     // Model backpack("../res/models/sponza/scene.gltf"); 
+    Model pistol("../res/models/pistol/scene.gltf"); 
 
     // Textures
     unsigned int diffuseMap = loadTexture("../res/textures/container2.png");
     unsigned int specularMap = loadTexture("../res/textures/container2_specular.png");
+
+    unsigned int grassTexture = loadTexture("../res/textures/grass.png");
 
     ourShader.use();
     ourShader.setInt("material.diffuse", 0);
@@ -373,30 +402,6 @@ int main(){
         ourShader.setFloat("pointLights[0].constant", 1.0f);
         ourShader.setFloat("pointLights[0].linear", 0.09f);
         ourShader.setFloat("pointLights[0].quadratic", 0.032f);
-        // point light 2
-        ourShader.setVec3("pointLights[1].position", pointLightPositions[1]);
-        ourShader.setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-        ourShader.setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
-        ourShader.setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
-        ourShader.setFloat("pointLights[1].constant", 1.0f);
-        ourShader.setFloat("pointLights[1].linear", 0.09f);
-        ourShader.setFloat("pointLights[1].quadratic", 0.032f);
-        // point light 3
-        ourShader.setVec3("pointLights[2].position", pointLightPositions[2]);
-        ourShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-        ourShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
-        ourShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
-        ourShader.setFloat("pointLights[2].constant", 1.0f);
-        ourShader.setFloat("pointLights[2].linear", 0.09f);
-        ourShader.setFloat("pointLights[2].quadratic", 0.032f);
-        // point light 4
-        ourShader.setVec3("pointLights[3].position", pointLightPositions[3]);
-        ourShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-        ourShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
-        ourShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
-        ourShader.setFloat("pointLights[3].constant", 1.0f);
-        ourShader.setFloat("pointLights[3].linear", 0.09f);
-        ourShader.setFloat("pointLights[3].quadratic", 0.032f);
         // spotLight
         ourShader.setVec3("spotLight.position", camera.Position);
         ourShader.setVec3("spotLight.direction", camera.Front);
@@ -429,7 +434,6 @@ int main(){
             ourShader.setMat4("view", view);
             ourShader.setMat4("projection", projection);
             ourShader.setMat4("model", model);
-
 
             glStencilFunc(GL_ALWAYS, 1, 0xFF);
             glStencilMask(0xFF); 
@@ -472,7 +476,6 @@ int main(){
              glDrawArrays(GL_TRIANGLES, 0, 36);
          }
         
-
         // COLORED CUBE 
         lightingShader.use();
 
@@ -487,8 +490,8 @@ int main(){
         lightingShader.setVec3("light.specular", glm::vec3(1.0f)); 
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -3.5f, -2.0f));
-        model = glm::scale(model, glm::vec3(3.0f, 0.1f, 3.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -1.5f, -2.0f));
+        model = glm::scale(model, glm::vec3(35.0f, 0.01f, 35.0f));
 
         lightingShader.setMat4("view", view);
         lightingShader.setMat4("projection", projection);
@@ -497,6 +500,12 @@ int main(){
 
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // Render Grass
+        for(unsigned int i=0; i<100; i++){
+            glBindVertexArray(quadVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 4);
+        }
 
         // Render Model
         modelShader.use();
@@ -511,6 +520,7 @@ int main(){
         modelShader.setMat4("model", model);
 
         // backpack.Draw(modelShader);
+        pistol.Draw(modelShader);
 
 
         //-------------------------------------------------------------------
