@@ -10,8 +10,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "../include/shader.h"
-#include "../include/model.h"
 #include "./camera/camera.h"
+#include "../include/model/model.h"
+#include "../include/model/animator.h"
+#include "../include/model/animation.h"
 
 #include <glm/trigonometric.hpp>
 #include <iostream>
@@ -300,7 +302,7 @@ int main(){
     // ---------------------------------------------
     unsigned int quadVBO, quadVAO; 
 
-    glGenVertexArrays(1, &quadVBO);
+    glGenVertexArrays(1, &quadVAO);
     glGenBuffers(1, &quadVBO);
 
     glBindVertexArray(quadVAO);
@@ -316,6 +318,7 @@ int main(){
     Shader lightingShader("../src/shaders/color.vert", "../src/shaders/color.frag");
     Shader lightCubeShader("../src/shaders/light.vert", "../src/shaders/light.frag");
     Shader modelShader("../src/shaders/model.vert", "../src/shaders/model.frag");
+    Shader animShader("../src/shaders/model/animation.vert", "../src/shaders/model/animation.frag");
 
     Shader depthShader("../src/shaders/depth_testing_shader/depth.vert", "../src/shaders/depth_testing_shader/depth.frag");
     Shader outlineShader("../src/shaders/outline_shader/outline.vert", "../src/shaders/outline_shader/outline.frag");
@@ -324,6 +327,8 @@ int main(){
     // Model backpack("../res/models/backpack/backpack.obj"); 
     // Model backpack("../res/models/sponza/scene.gltf"); 
     Model pistol("../res/models/pistol/scene.gltf"); 
+    Animation pistolAnimation("../res/models/pistol/scene.gltf", &pistol); 
+    Animator animator(&pistolAnimation);
 
     // Textures
     unsigned int diffuseMap = loadTexture("../res/textures/container2.png");
@@ -347,13 +352,14 @@ int main(){
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     // RENDER LOOP
     while(!glfwWindowShouldClose(window)){
-        // process input
-        process_input(window);
-
         // Delta Time
         float currentFrameTime = (float)glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
+
+        // process input
+        process_input(window);
+        animator.UpdateAnimation(deltaTime);
 
         // render
         glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
@@ -420,45 +426,45 @@ int main(){
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
 
-        for(unsigned int i=0; i<10; ++i){
-            model = glm::mat4(1.0);
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 25.0f*i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            if(i%3 == 0) {
-                angle = glfwGetTime() * 25.0f;
-                model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            }
-
-            ourShader.setVec3("viewPos", camera.Position);
-            ourShader.setMat4("view", view);
-            ourShader.setMat4("projection", projection);
-            ourShader.setMat4("model", model);
-
-            glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glStencilMask(0xFF); 
-
-            glBindVertexArray(VAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-            glBindVertexArray(0);
-            
-            // outline 
-            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-            glStencilMask(0x00); 
-            glDisable(GL_DEPTH_TEST);
-
-            outlineShader.use();
-            outlineShader.setMat4("view", view);
-            outlineShader.setMat4("projection", projection);
-            model = glm::scale(model, glm::vec3(1.06));
-            outlineShader.setMat4("model", model);
-            glBindVertexArray(VAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-            glBindVertexArray(0);
-
-            glStencilMask(0xFF); 
-            glEnable(GL_DEPTH_TEST);
-        }
+        // for(unsigned int i=0; i<10; ++i){
+        //     model = glm::mat4(1.0);
+        //     model = glm::translate(model, cubePositions[i]);
+        //     float angle = 25.0f*i;
+        //     model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+        //     if(i%3 == 0) {
+        //         angle = glfwGetTime() * 25.0f;
+        //         model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+        //     }
+        //
+        //     ourShader.setVec3("viewPos", camera.Position);
+        //     ourShader.setMat4("view", view);
+        //     ourShader.setMat4("projection", projection);
+        //     ourShader.setMat4("model", model);
+        //
+        //     glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        //     glStencilMask(0xFF); 
+        //
+        //     glBindVertexArray(VAO);
+        //     glDrawArrays(GL_TRIANGLES, 0, 36);
+        //     glBindVertexArray(0);
+        //
+        //     // outline 
+        //     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        //     glStencilMask(0x00); 
+        //     glDisable(GL_DEPTH_TEST);
+        //
+        //     outlineShader.use();
+        //     outlineShader.setMat4("view", view);
+        //     outlineShader.setMat4("projection", projection);
+        //     model = glm::scale(model, glm::vec3(1.06));
+        //     outlineShader.setMat4("model", model);
+        //     glBindVertexArray(VAO);
+        //     glDrawArrays(GL_TRIANGLES, 0, 36);
+        //     glBindVertexArray(0);
+        //
+        //     glStencilMask(0xFF); 
+        //     glEnable(GL_DEPTH_TEST);
+        // }
 
         // LIGHT CUBE
         lightCubeShader.use();
@@ -502,10 +508,10 @@ int main(){
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Render Grass
-        for(unsigned int i=0; i<100; i++){
-            glBindVertexArray(quadVAO);
-            glDrawArrays(GL_TRIANGLES, 0, 4);
-        }
+        // for(unsigned int i=0; i<100; i++){
+        //     glBindVertexArray(quadVAO);
+        //     glDrawArrays(GL_TRIANGLES, 0, 4);
+        // }
 
         // Render Model
         modelShader.use();
@@ -519,9 +525,30 @@ int main(){
         model = glm::mat4(1.0f);
         modelShader.setMat4("model", model);
 
-        // backpack.Draw(modelShader);
-        pistol.Draw(modelShader);
+        animShader.use();
 
+        // view/projection transformations
+        projection = glm::perspective(glm::radians(camera.Zoom), 
+            (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        view = camera.GetViewMatrix();
+        animShader.setMat4("projection", projection);
+        animShader.setMat4("view", view);
+
+        auto transform = animator.GetFinalBoneMatrices();
+        for (int i = 0; i < transform.size(); ++i)
+            animShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transform[i]);
+
+        // render the loaded model
+        model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(0.0f, 0.1f, 0.0f)); 
+        model = glm::translate(model, glm::vec3(camera.Position.x, camera.Position.y, camera.Position.z - 0.5)); 
+        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));	
+        model = glm::scale(model, glm::vec3(.01f, .01f, .01f));	
+        animShader.setMat4("model", model);
+        pistol.Draw(animShader);
+
+        // backpack.Draw(modelShader);
+        // pistol.Draw(modelShader);
 
         //-------------------------------------------------------------------
         
