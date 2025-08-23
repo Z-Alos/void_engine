@@ -78,7 +78,7 @@ public:
             Position += glm::normalize(glm::cross(Front, Up)) * cameraSpeed;
         }
 
-        Position.y = 0.0f;
+        Position.y = 2.0f;
     }
 
     void ProcessMouseScroll(float yoffset){

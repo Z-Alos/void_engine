@@ -37,7 +37,7 @@ float deltaTime = 0.0f;
 float lastFrameTime = 0.0f;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 2.0f, 3.0f));
 
 // Mouse
 bool firstMouse = false;
@@ -310,10 +310,13 @@ int main(){
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
+
     Shader ourShader("../src/shaders/shader.vert", "../src/shaders/shader.frag");
     Shader lightingShader("../src/shaders/color.vert", "../src/shaders/color.frag");
     Shader lightCubeShader("../src/shaders/light.vert", "../src/shaders/light.frag");
@@ -322,6 +325,7 @@ int main(){
 
     Shader depthShader("../src/shaders/depth_testing_shader/depth.vert", "../src/shaders/depth_testing_shader/depth.frag");
     Shader outlineShader("../src/shaders/outline_shader/outline.vert", "../src/shaders/outline_shader/outline.frag");
+    Shader alphaShader("../src/shaders/transparent/trasparent.vert", "../src/shaders/transparent/transparent.frag");
 
     // Model
     // Model backpack("../res/models/backpack/backpack.obj"); 
@@ -346,8 +350,8 @@ int main(){
     lightingShader.setInt("material.specular", 1);
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_STENCIL_TEST);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
+    // glEnable(GL_STENCIL_TEST);
+    // glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     // RENDER LOOP
@@ -508,47 +512,69 @@ int main(){
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Render Grass
-        // for(unsigned int i=0; i<100; i++){
-        //     glBindVertexArray(quadVAO);
-        //     glDrawArrays(GL_TRIANGLES, 0, 4);
-        // }
+        alphaShader.use();
 
-        // Render Model
-        modelShader.use();
-        modelShader.setMat4("view", view);
-        modelShader.setMat4("projection", projection);
+        alphaShader.setMat4("view", view);
+        alphaShader.setMat4("projection", projection);
 
-        model = glm::mat4(1.0f);
-        model = glm::scale(model, glm::vec3(0.01));
-        modelShader.setMat4("model", model);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, grassTexture);
+        alphaShader.setMat4("texture_1", grassTexture);
 
-        model = glm::mat4(1.0f);
-        modelShader.setMat4("model", model);
+        for(unsigned int i = 0; i < 10; i++) {
+            for(unsigned int j = 0; j < 10; j++) {
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(i * 2.0f - 10.0f, -0.01f, j * 2.0f - 10.0f));
+                // model = glm::scale(model, glm::vec3(0.5f)); 
+                alphaShader.setMat4("model", model);
+                
+                glBindVertexArray(quadVAO);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, grassTexture);
+                glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        animShader.use();
+                model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)); 
+                alphaShader.setMat4("model", model);
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+            }
+        }
 
-        // view/projection transformations
-        projection = glm::perspective(glm::radians(camera.Zoom), 
-            (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        view = camera.GetViewMatrix();
-        animShader.setMat4("projection", projection);
-        animShader.setMat4("view", view);
-
-        auto transform = animator.GetFinalBoneMatrices();
-        for (int i = 0; i < transform.size(); ++i)
-            animShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transform[i]);
-
-        // render the loaded model
-        model = glm::mat4(1.0f);
-        // model = glm::translate(model, glm::vec3(0.0f, 0.1f, 0.0f)); 
-        model = glm::translate(model, glm::vec3(camera.Position.x, camera.Position.y, camera.Position.z - 0.5)); 
-        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));	
-        model = glm::scale(model, glm::vec3(.01f, .01f, .01f));	
-        animShader.setMat4("model", model);
-        pistol.Draw(animShader);
-
-        // backpack.Draw(modelShader);
-        // pistol.Draw(modelShader);
+        // // Render Model
+        // modelShader.use();
+        // modelShader.setMat4("view", view);
+        // modelShader.setMat4("projection", projection);
+        //
+        // model = glm::mat4(1.0f);
+        // model = glm::scale(model, glm::vec3(0.01));
+        // modelShader.setMat4("model", model);
+        //
+        // model = glm::mat4(1.0f);
+        // modelShader.setMat4("model", model);
+        //
+        // animShader.use();
+        //
+        // // view/projection transformations
+        // projection = glm::perspective(glm::radians(camera.Zoom), 
+        //     (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        // view = camera.GetViewMatrix();
+        // animShader.setMat4("projection", projection);
+        // animShader.setMat4("view", view);
+        //
+        // auto transform = animator.GetFinalBoneMatrices();
+        // for (int i = 0; i < transform.size(); ++i)
+        //     animShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transform[i]);
+        //
+        // // render the loaded model
+        // model = glm::mat4(1.0f);
+        // // model = glm::translate(model, glm::vec3(0.0f, 0.1f, 0.0f)); 
+        // model = glm::translate(model, glm::vec3(camera.Position.x, camera.Position.y, camera.Position.z - 0.5)); 
+        // model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));	
+        // model = glm::scale(model, glm::vec3(.01f, .01f, .01f));	
+        // animShader.setMat4("model", model);
+        // pistol.Draw(animShader);
+        //
+        // // backpack.Draw(modelShader);
+        // // pistol.Draw(modelShader);
 
         //-------------------------------------------------------------------
         
@@ -634,8 +660,8 @@ unsigned int loadTexture (std::string filePath){
         glGenerateMipmap(GL_TEXTURE_2D);
 
         // set texture wraping parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
         // set texture filtering parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
