@@ -62,7 +62,7 @@ Grass::Grass() {
     glBindVertexArray(0);
 
     // Generate Grass Field
-    generateGrassField(10, 10, 1.5f);
+    generateGrassField(15, 15, 0.7f);
 }
 
 Grass::~Grass() {
@@ -81,8 +81,9 @@ void Grass::Draw(Shader& shader) {
         model = glm::mat4(1.0f);
         model = glm::translate(model, instance.position);
         model = glm::rotate(model, instance.rotation, glm::vec3(0.0, 1.0, 0.0));
-        model = glm::scale(model, glm::vec3(2.5f * instance.scale, 2.0f * instance.scale, 1.0f));
+        model = glm::scale(model, glm::vec3(3.5f * instance.scale, 2.0f * instance.scale, 1.0f));
 
+        shader.setFloat("randomLean", instance.randomLean);
         shader.setMat4("model", model);
         glDrawElements(GL_TRIANGLES, 27, GL_UNSIGNED_INT, 0);  
     }
@@ -106,6 +107,7 @@ void Grass::generateGrassField(int gridWidth, int gridHeight, float spacing) {
             instance.position = glm::vec3(baseX + offsetX, 0.0f, baseZ + offsetZ);
             instance.scale = randomInRange(0.8f, 1.2f);  
             instance.rotation = randomInRange(0.0f, 6.28318f);  
+            instance.randomLean = randomInRange(-1.0, 1.0);
             
             grassInstance.push_back(instance);
         }

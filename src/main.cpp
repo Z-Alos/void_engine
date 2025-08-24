@@ -61,6 +61,7 @@ int main(){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     // Create a window
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "opengl", NULL, NULL);
@@ -357,6 +358,7 @@ int main(){
     lightingShader.setInt("material.specular", 1);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
     // glEnable(GL_STENCIL_TEST);
     // glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
 
@@ -522,6 +524,9 @@ int main(){
         grassShader.use();
         grassShader.setMat4("view", view);
         grassShader.setMat4("projection", projection);
+        grassShader.setFloat("time", glfwGetTime());
+        grassShader.setFloat("windStrength", 1.5f); // Adjust as needed
+        grassShader.setVec2("windDirection", glm::vec2(1.0f, 0.3f));
         grass.Draw(grassShader);
 
         // // Render Model

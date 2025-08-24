@@ -19,6 +19,7 @@ struct GrassInstance {
     glm::vec3 position;
     float rotation;
     float scale;
+    float randomLean;
 };
 
 class Grass {
