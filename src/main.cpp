@@ -1,6 +1,7 @@
 #include "../vendor/glad/include/glad/glad.h"
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
+#include <cstdlib>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/quaternion_geometric.hpp>
 #include <glm/ext/vector_float3.hpp>
@@ -14,6 +15,7 @@
 #include "../include/model/model.h"
 #include "../include/model/animator.h"
 #include "../include/model/animation.h"
+#include "entities/grass.h"
 
 #include <glm/trigonometric.hpp>
 #include <iostream>
@@ -37,7 +39,7 @@ float deltaTime = 0.0f;
 float lastFrameTime = 0.0f;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 2.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 3.0f, 3.0f));
 
 // Mouse
 bool firstMouse = false;
@@ -327,12 +329,17 @@ int main(){
     Shader outlineShader("../src/shaders/outline_shader/outline.vert", "../src/shaders/outline_shader/outline.frag");
     Shader alphaShader("../src/shaders/transparent/trasparent.vert", "../src/shaders/transparent/transparent.frag");
 
+    // Grass Shader
+    Shader grassShader("../src/shaders/grass/grass.vert", "../src/shaders/grass/grass.frag");
+
     // Model
     // Model backpack("../res/models/backpack/backpack.obj"); 
     // Model backpack("../res/models/sponza/scene.gltf"); 
     Model pistol("../res/models/pistol/scene.gltf"); 
     Animation pistolAnimation("../res/models/pistol/scene.gltf", &pistol); 
     Animator animator(&pistolAnimation);
+
+    Grass grass;
 
     // Textures
     unsigned int diffuseMap = loadTexture("../res/textures/container2.png");
@@ -471,20 +478,20 @@ int main(){
         // }
 
         // LIGHT CUBE
-        lightCubeShader.use();
-        lightCubeShader.setMat4("view", view);
-        lightCubeShader.setMat4("projection", projection);
-         glBindVertexArray(LightCubeVAO);
-         for (unsigned int i = 0; i < 4; i++)
-         {
-             model = glm::mat4(1.0f);
-             model = glm::translate(model, pointLightPositions[i]);
-             model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
-             lightCubeShader.setMat4("model", model);
-
-             glBindVertexArray(LightCubeVAO);
-             glDrawArrays(GL_TRIANGLES, 0, 36);
-         }
+        // lightCubeShader.use();
+        // lightCubeShader.setMat4("view", view);
+        // lightCubeShader.setMat4("projection", projection);
+        //  glBindVertexArray(LightCubeVAO);
+        //  for (unsigned int i = 0; i < 4; i++)
+        //  {
+        //      model = glm::mat4(1.0f);
+        //      model = glm::translate(model, pointLightPositions[i]);
+        //      model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
+        //      lightCubeShader.setMat4("model", model);
+        //
+        //      glBindVertexArray(LightCubeVAO);
+        //      glDrawArrays(GL_TRIANGLES, 0, 36);
+        //  }
         
         // COLORED CUBE 
         lightingShader.use();
@@ -500,7 +507,7 @@ int main(){
         lightingShader.setVec3("light.specular", glm::vec3(1.0f)); 
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -1.5f, -2.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(35.0f, 0.01f, 35.0f));
 
         lightingShader.setMat4("view", view);
@@ -512,32 +519,10 @@ int main(){
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Render Grass
-        alphaShader.use();
-
-        alphaShader.setMat4("view", view);
-        alphaShader.setMat4("projection", projection);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, grassTexture);
-        alphaShader.setMat4("texture_1", grassTexture);
-
-        for(unsigned int i = 0; i < 10; i++) {
-            for(unsigned int j = 0; j < 10; j++) {
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(i * 2.0f - 10.0f, -0.01f, j * 2.0f - 10.0f));
-                // model = glm::scale(model, glm::vec3(0.5f)); 
-                alphaShader.setMat4("model", model);
-                
-                glBindVertexArray(quadVAO);
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, grassTexture);
-                glDrawArrays(GL_TRIANGLES, 0, 6);
-
-                model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)); 
-                alphaShader.setMat4("model", model);
-                glDrawArrays(GL_TRIANGLES, 0, 6);
-            }
-        }
+        grassShader.use();
+        grassShader.setMat4("view", view);
+        grassShader.setMat4("projection", projection);
+        grass.Draw(grassShader);
 
         // // Render Model
         // modelShader.use();
@@ -574,7 +559,7 @@ int main(){
         // pistol.Draw(animShader);
         //
         // // backpack.Draw(modelShader);
-        // // pistol.Draw(modelShader);
+        // pistol.Draw(modelShader);
 
         //-------------------------------------------------------------------
         

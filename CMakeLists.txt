@@ -10,7 +10,8 @@ target_include_directories(glad PUBLIC
 )
 
 # Now the actual app
-add_executable(main ./src/main.cpp)
+add_executable(main ./src/main.cpp
+                ./src/entities/grass.cpp)
 
 find_package(assimp REQUIRED)
 
