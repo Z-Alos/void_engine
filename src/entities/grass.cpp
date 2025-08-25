@@ -3,24 +3,43 @@
 #include <GL/glext.h>
 #include "grass.h"
 
+// float vertices[] = {
+//     //   x      y      z     u     v
+//     // Grass blade - tapered from bottom to top
+//     0.0f,  0.0f, 0.0f,  0.5f, 0.0f,   // 0: bottom center
+//    -0.03f, 0.0f, 0.0f,  0.0f, 0.0f,   // 1: bottom left
+//     0.03f, 0.0f, 0.0f,  1.0f, 0.0f,   // 2: bottom right
+//
+//    -0.025f, 0.2f, 0.0f, 0.1f, 0.33f,  // 3: lower left
+//     0.025f, 0.2f, 0.0f, 0.9f, 0.33f,  // 4: lower right
+//
+//    -0.02f,  0.4f, 0.0f, 0.2f, 0.66f,  // 5: middle left
+//     0.02f,  0.4f, 0.0f, 0.8f, 0.66f,  // 6: middle right
+//
+//    -0.01f,  0.6f, 0.0f, 0.3f, 0.85f,  // 7: upper left
+//     0.01f,  0.6f, 0.0f, 0.7f, 0.85f,  // 8: upper right
+//
+//     0.0f,   0.8f, 0.0f, 0.5f, 1.0f    // 9: tip (single point)
+// };
+
 float vertices[] = {
-    //   x      y      z     u     v
-    // Grass blade - tapered from bottom to top
-    0.0f,  0.0f, 0.0f,  0.5f, 0.0f,   // 0: bottom center
-   -0.03f, 0.0f, 0.0f,  0.0f, 0.0f,   // 1: bottom left
-    0.03f, 0.0f, 0.0f,  1.0f, 0.0f,   // 2: bottom right
+    //   x      y     z      nx   ny   nz     u     v
+    0.0f,  0.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.5f, 0.0f,   // 0: bottom center
+   -0.03f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 1: bottom left
+    0.03f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,   // 2: bottom right
     
-   -0.025f, 0.2f, 0.0f, 0.1f, 0.33f,  // 3: lower left
-    0.025f, 0.2f, 0.0f, 0.9f, 0.33f,  // 4: lower right
+   -0.025f, 0.2f, 0.0f,  0.0f, 0.0f, 1.0f,   0.1f, 0.33f,  // 3: lower left
+    0.025f, 0.2f, 0.0f,  0.0f, 0.0f, 1.0f,   0.9f, 0.33f,  // 4: lower right
     
-   -0.02f,  0.4f, 0.0f, 0.2f, 0.66f,  // 5: middle left
-    0.02f,  0.4f, 0.0f, 0.8f, 0.66f,  // 6: middle right
+   -0.02f,  0.4f, 0.0f,  0.0f, 0.0f, 1.0f,   0.2f, 0.66f,  // 5: middle left
+    0.02f,  0.4f, 0.0f,  0.0f, 0.0f, 1.0f,   0.8f, 0.66f,  // 6: middle right
     
-   -0.01f,  0.6f, 0.0f, 0.3f, 0.85f,  // 7: upper left
-    0.01f,  0.6f, 0.0f, 0.7f, 0.85f,  // 8: upper right
+   -0.01f,  0.6f, 0.0f,  0.0f, 0.0f, 1.0f,   0.3f, 0.85f,  // 7: upper left
+    0.01f,  0.6f, 0.0f,  0.0f, 0.0f, 1.0f,   0.7f, 0.85f,  // 8: upper right
     
-    0.0f,   0.8f, 0.0f, 0.5f, 1.0f    // 9: tip (single point)
+    0.0f,   0.8f, 0.0f,  0.0f, 0.0f, 1.0f,   0.5f, 1.0f    // 9: tip (single point)
 };
+
 
 unsigned int indices[] = {
     // Bottom section (wider base)
@@ -53,16 +72,26 @@ Grass::Grass() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    // glEnableVertexAttribArray(0);
+    //
+    // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    // glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
     glBindVertexArray(0);
 
     // Generate Grass Field
-    generateGrassField(15, 15, 0.7f);
+    // generateGrassField(15, 15, 0.7f);
+    generateGrassField(55, 55, 0.3f);
 }
 
 Grass::~Grass() {
@@ -105,9 +134,10 @@ void Grass::generateGrassField(int gridWidth, int gridHeight, float spacing) {
             float offsetZ = randomInRange(-0.5f, 0.5f);  
             
             instance.position = glm::vec3(baseX + offsetX, 0.0f, baseZ + offsetZ);
-            instance.scale = randomInRange(0.8f, 1.2f);  
+            instance.scale = randomInRange(0.6f, 1.2f);  
             instance.rotation = randomInRange(0.0f, 6.28318f);  
-            instance.randomLean = randomInRange(-1.0, 1.0);
+            // instance.rotation = randomInRange(0.0f, 0.28318f);  
+            instance.randomLean = randomInRange(0.0, 1.0);
             
             grassInstance.push_back(instance);
         }

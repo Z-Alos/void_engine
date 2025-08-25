@@ -47,7 +47,7 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 
 // Light
-glm::vec3 lightPos(0.0f, -2.5f, -1.0f);
+glm::vec3 lightPos(0.0f, 3.5f, 0.0f);
 
 // Buffer Usage:
 // > Generate a buffer and store it's id
@@ -495,11 +495,11 @@ int main(){
         //      glDrawArrays(GL_TRIANGLES, 0, 36);
         //  }
         
-        // COLORED CUBE 
+        // PLANE 
         lightingShader.use();
 
-        lightingShader.setVec3("material.ambient", glm::vec3(0.9f, 0.2f, 0.3f)); 
-        lightingShader.setVec3("material.diffuse", glm::vec3(0.9f, 0.2f, 0.3f)); 
+        lightingShader.setVec3("material.ambient", glm::vec3(0.7f, 0.7f, 0.7f)); 
+        lightingShader.setVec3("material.diffuse", glm::vec3(0.7f, 0.7f, 0.7f)); 
         lightingShader.setVec3("material.specular", glm::vec3(0.2f)); 
         lightingShader.setFloat("material.shininess", 32.0f);
 
@@ -527,6 +527,7 @@ int main(){
         grassShader.setFloat("time", glfwGetTime());
         grassShader.setFloat("windStrength", 1.5f); // Adjust as needed
         grassShader.setVec2("windDirection", glm::vec2(1.0f, 0.3f));
+        grassShader.setVec3("lightPos", lightPos);
         grass.Draw(grassShader);
 
         // // Render Model
