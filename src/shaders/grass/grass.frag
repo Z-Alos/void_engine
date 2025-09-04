@@ -8,7 +8,7 @@ in float heightPercent;
 
 uniform vec3 lightPos;
 
-vec3 lightColor = vec3(1.0);
+vec3 lightColor = vec3(1.0f);
 
 mat3 rotateY(float angle) {
     float c = cos(angle);
@@ -35,11 +35,12 @@ void main() {
     normal = normalize(normal);
     vec3 lightDir = normalize(lightPos - FragPos);
 
-    vec3 grassColor = vec3(0.0, 0.86, 0.0);
     // ambient
-    vec3 ambient = lightColor * vec3(0.5);
+    float ambientStrength = 0.3;
+    vec3 ambient = lightColor * ambientStrength;
     // diffuse
     float diff = max(dot(normal, lightDir), 0.0);
+    diff = max(diff, dot(-normal, lightDir));
     vec3 diffuse = diff * lightColor;
 
     vec3 result = (ambient + diffuse) * diffuseColor;

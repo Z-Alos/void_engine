@@ -84,6 +84,9 @@ void main(){
         result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);    
     // phase 3: spot light
     result += CalcSpotLight(spotLight, norm, FragPos, viewDir);    
+
+    // Transformation
+
     
     FragColor = vec4(result, 1.0);
 }

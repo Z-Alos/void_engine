@@ -42,12 +42,12 @@ float lastFrameTime = 0.0f;
 Camera camera(glm::vec3(0.0f, 3.0f, 3.0f));
 
 // Mouse
-bool firstMouse = false;
+bool firstMouse = true;
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 
 // Light
-glm::vec3 lightPos(0.0f, 3.5f, 0.0f);
+glm::vec3 lightPos(0.0f, 20.5f, 0.0f);
 
 // Buffer Usage:
 // > Generate a buffer and store it's id
@@ -333,6 +333,8 @@ int main(){
     // Grass Shader
     Shader grassShader("../src/shaders/grass/grass.vert", "../src/shaders/grass/grass.frag");
 
+    Shader transformShader("../src/shaders/transform/transform.vert", "../src/shaders/transform/transform.frag");
+
     // Model
     // Model backpack("../res/models/backpack/backpack.obj"); 
     // Model backpack("../res/models/sponza/scene.gltf"); 
@@ -370,9 +372,11 @@ int main(){
         deltaTime = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
 
+        // std::cout << "FPS: " << 1 / deltaTime << std::endl;
+
         // process input
         process_input(window);
-        animator.UpdateAnimation(deltaTime);
+        // animator.UpdateAnimation(deltaTime);
 
         // render
         glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
@@ -462,21 +466,21 @@ int main(){
         //     glBindVertexArray(0);
         //
         //     // outline 
-        //     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-        //     glStencilMask(0x00); 
-        //     glDisable(GL_DEPTH_TEST);
-        //
-        //     outlineShader.use();
-        //     outlineShader.setMat4("view", view);
-        //     outlineShader.setMat4("projection", projection);
-        //     model = glm::scale(model, glm::vec3(1.06));
-        //     outlineShader.setMat4("model", model);
-        //     glBindVertexArray(VAO);
-        //     glDrawArrays(GL_TRIANGLES, 0, 36);
-        //     glBindVertexArray(0);
-        //
-        //     glStencilMask(0xFF); 
-        //     glEnable(GL_DEPTH_TEST);
+        //     // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        //     // glStencilMask(0x00); 
+        //     // glDisable(GL_DEPTH_TEST);
+        //     //
+        //     // outlineShader.use();
+        //     // outlineShader.setMat4("view", view);
+        //     // outlineShader.setMat4("projection", projection);
+        //     // model = glm::scale(model, glm::vec3(1.06));
+        //     // outlineShader.setMat4("model", model);
+        //     // glBindVertexArray(VAO);
+        //     // glDrawArrays(GL_TRIANGLES, 0, 36);
+        //     // glBindVertexArray(0);
+        //     //
+        //     // glStencilMask(0xFF); 
+        //     // glEnable(GL_DEPTH_TEST);
         // }
 
         // LIGHT CUBE
@@ -525,9 +529,10 @@ int main(){
         grassShader.setMat4("view", view);
         grassShader.setMat4("projection", projection);
         grassShader.setFloat("time", glfwGetTime());
-        grassShader.setFloat("windStrength", 1.5f); // Adjust as needed
+        grassShader.setFloat("windStrength", 1.5f);
         grassShader.setVec2("windDirection", glm::vec2(1.0f, 0.3f));
         grassShader.setVec3("lightPos", lightPos);
+        // grassShader.setVec3("lightPos", camera.Position);
         grass.Draw(grassShader);
 
         // // Render Model
@@ -566,6 +571,26 @@ int main(){
         //
         // // backpack.Draw(modelShader);
         // pistol.Draw(modelShader);
+
+        //---------------------
+        // Transform Controls
+        //---------------------
+        // X
+        glm::vec3 xAxis = glm::vec3(1.0f, 0.1f, 0.1f);
+        glm::vec3 yAxis = glm::vec3(0.1f, 1.0f, 0.1f);
+        glm::vec3 zAxis = glm::vec3(0.1f, 0.1f, 1.0f);
+
+        transformShader.use();
+        transformShader.setVec3("viewPos", camera.Position);
+        transformShader.setMat4("view", view);
+        transformShader.setMat4("projection", projection);
+        model = glm::mat4(1.0);
+        model = glm::translate(model, glm::vec3(0.0, 3.0, 0.0)); 
+        model = glm::scale(model, glm::vec3(0.3f, 0.01f, 0.01f));
+        transformShader.setMat4("model", model);
+
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         //-------------------------------------------------------------------
         

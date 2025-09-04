@@ -1,4 +1,4 @@
-#version 330
+#version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoord;
@@ -9,7 +9,7 @@ out vec3 Normal;
 out float heightPercent;
 
 uniform float randomLean;
-
+uniform float time;
 uniform mat4 view;
 uniform mat4 model;
 uniform mat4 projection;
@@ -22,19 +22,31 @@ mat3 rotateX(float angle) {
         0.0,   c,  -s,
         0.0,   s,   c
     );
-};
-
-void main() {
-    heightPercent = clamp(aPos.y / 0.7, 0.0, 1.0);
-    float curveAmount = randomLean * heightPercent;
-
-    // Rotate around X-axis (forward/backward)
-    mat3 grassMat = rotateX(curveAmount);
-    vec3 bentPos = grassMat * aPos;
-
-    FragPos = vec3(model * vec4(aPos, 1.0));
-    TexCoords = aTexCoord;
-    Normal = mat3(transpose(inverse(model))) * aNormal * grassMat;
-    gl_Position = projection * view * model * vec4(bentPos, 1.0);
 }
 
+void main() {
+    heightPercent = clamp(aPos.y / 0.8, 0.0, 1.0);
+    
+    vec3 worldPos = vec3(model * vec4(aPos, 1.0));
+    
+    float baseLean = randomLean * heightPercent;
+    
+    // Sway
+    float swayStrength = heightPercent * 0.11;
+    float windSway = sin(time * 2.0 + worldPos.x * 0.5 + worldPos.z * 0.3) * swayStrength;
+    
+    float totalCurve = baseLean + windSway;
+    
+    // Apply rotation
+    mat3 grassMat = rotateX(totalCurve);
+    vec3 bentPos = grassMat * aPos;
+    vec3 bentNormal = grassMat * aNormal;
+    
+    // Output
+    FragPos = vec3(model * vec4(bentPos, 1.0));
+    TexCoords = aTexCoord;
+    // Normal = mat3(transpose(inverse(model))) * bentNormal;
+    Normal = mat3(transpose(inverse(model))) * aNormal;
+    
+    gl_Position = projection * view * model * vec4(bentPos, 1.0);
+}
