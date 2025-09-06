@@ -31,7 +31,7 @@ class Grass {
         void generateGrassField (int gridWidth, int gridHeight, float spacing = 2.0f);
     private:
         float randomInRange(float min, float max);
-        unsigned int VAO, VBO, EBO;
+        unsigned int VAO, VBO, EBO, instanceVBO;
         std::vector<GrassInstance> grassInstance;
 };
 

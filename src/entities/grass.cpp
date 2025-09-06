@@ -117,6 +117,7 @@ Grass::Grass() {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
+    glGenBuffers(1, &instanceVBO);
     
     glBindVertexArray(VAO);
     
@@ -148,9 +149,21 @@ Grass::Grass() {
     // generateGrassField(55, 55, 0.3f);
     generateGrassField(75, 75, 0.2f);
     // generateGrassField(400, 400, 0.2f);
+    // generateGrassField(800, 800, 0.2f);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+
+    for (int i = 0; i < 4; i++) {
+        glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), 
+                              (void*)(i * sizeof(glm::vec4)));
+        glEnableVertexAttribArray(3 + i);
+        glVertexAttribDivisor(3 + i, 1); 
+    }
 }
 
 Grass::~Grass() {
+    glDeleteBuffers(1, &instanceVBO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
     glDeleteVertexArrays(1, &VAO);
@@ -159,20 +172,20 @@ Grass::~Grass() {
 void Grass::Draw(Shader& shader) {
     shader.use();
     glBindVertexArray(VAO);
+    glDrawElementsInstanced(GL_TRIANGLES, 39, GL_UNSIGNED_INT, 0, grassInstance.size());
 
-    glm::mat4 model = glm::mat4(1.0f);
-
-    for(const auto& instance: grassInstance) {
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, instance.position);
-        model = glm::rotate(model, instance.rotation, glm::vec3(0.0, 1.0, 0.0));
-        model = glm::scale(model, glm::vec3(2.0f * instance.scale, 2.0f * instance.scale, 1.0f));
-
-        shader.setFloat("randomLean", instance.randomLean);
-        shader.setMat4("model", model);
-        // glDrawElements(GL_TRIANGLES, 27, GL_UNSIGNED_INT, 0);  
-        glDrawElements(GL_TRIANGLES, 39, GL_UNSIGNED_INT, 0);  
-    }
+    // glm::mat4 model = glm::mat4(1.0f);
+    // for(const auto& instance: grassInstance) {
+    //     model = glm::mat4(1.0f);
+    //     model = glm::translate(model, instance.position);
+    //     model = glm::rotate(model, instance.rotation, glm::vec3(0.0, 1.0, 0.0));
+    //     model = glm::scale(model, glm::vec3(2.0f * instance.scale, 2.0f * instance.scale, 1.0f));
+    //
+    //     shader.setFloat("randomLean", instance.randomLean);
+    //     shader.setMat4("model", model);
+    //     // glDrawElements(GL_TRIANGLES, 27, GL_UNSIGNED_INT, 0);  
+    //     // glDrawElements(GL_TRIANGLES, 39, GL_UNSIGNED_INT, 0);  
+    // }
 
     glBindVertexArray(0);
 }
@@ -192,13 +205,29 @@ void Grass::generateGrassField(int gridWidth, int gridHeight, float spacing) {
             
             instance.position = glm::vec3(baseX + offsetX, 0.0f, baseZ + offsetZ);
             instance.scale = randomInRange(0.6f, 1.2f);  
-            instance.rotation = randomInRange(0.0f, 6.28318f);  
-            // instance.rotation = randomInRange(0.0f, 1.28318f);  
-            instance.randomLean = randomInRange(0.0, 1.0);
+            // instance.rotation = randomInRange(0.0f, 6.28318f);  
+            instance.rotation = randomInRange(0.0f, 1.28318f);  
+            instance.randomLean = randomInRange(0.0, 0.4);
             
             grassInstance.push_back(instance);
         }
     }
+
+    // Build model matrices
+    std::vector<glm::mat4> matrices(grassInstance.size());
+    for (size_t i = 0; i < grassInstance.size(); i++) {
+        glm::mat4 model(1.0f);
+        model = glm::translate(model, grassInstance[i].position);
+        model = glm::rotate(model, grassInstance[i].rotation, glm::vec3(0.0, 1.0, 0.0));
+        model = glm::rotate(model, grassInstance[i].randomLean, glm::vec3(1.0, 0.0, 0.0));
+        model = glm::scale(model, glm::vec3(2.0f * grassInstance[i].scale));
+
+        matrices[i] = model;
+    }
+
+    // Upload combined data
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, matrices.size() * sizeof(glm::mat4), matrices.data(), GL_STATIC_DRAW);
 }
 
 // utils

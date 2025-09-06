@@ -35,6 +35,7 @@ const unsigned int SCR_HEIGHT= 800;
 // Time
 float deltaTime = 0.0f;
 float lastFrameTime = 0.0f;
+float lastNoiseUpdate = 0.0f;
 
 // Camera
 Camera camera(glm::vec3(0.0f, 3.0f, 3.0f));
@@ -236,22 +237,18 @@ int main(){
 
     PerlinNoise perlinNoise;
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_MULTISAMPLE);
-
-    // Draw the Noise
-    std::vector<unsigned char> perlinData = perlinNoise.GenerateNoise(SCR_WIDTH, SCR_HEIGHT, 5.0f);
     GLuint noiseTex;
     glGenTextures(1, &noiseTex);
     glBindTexture(GL_TEXTURE_2D, noiseTex);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, perlinData.data());
-    glGenerateMipmap(GL_TEXTURE_2D);
+    std::vector<unsigned char> perlinData;
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     // RENDER LOOP
@@ -260,8 +257,6 @@ int main(){
         float currentFrameTime = (float)glfwGetTime();
         deltaTime = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
-
-        // std::cout << "FPS: " << 1 / deltaTime << std::endl;
 
         // process input
         process_input(window);
@@ -283,6 +278,14 @@ int main(){
 
         shader.use();
         shader.setInt("noiseTex", 0); 
+
+        // Draw the Noise
+        if (currentFrameTime - lastNoiseUpdate >= 1.5f) {
+            perlinData = perlinNoise.GenerateNoise(SCR_WIDTH, SCR_HEIGHT, 5.0f, currentFrameTime);
+            glBindTexture(GL_TEXTURE_2D, noiseTex);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, perlinData.data());
+            lastNoiseUpdate = currentFrameTime;
+        }
 
         glBindVertexArray(quadVAO);
         glActiveTexture(GL_TEXTURE0);

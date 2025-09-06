@@ -16,6 +16,7 @@
 #include "../include/model/animator.h"
 #include "../include/model/animation.h"
 #include "entities/grass.h"
+// #include "renderer/text/TextBlitter.h"
 
 #include <glm/trigonometric.hpp>
 #include <iostream>
@@ -335,6 +336,9 @@ int main(){
 
     Shader transformShader("../src/shaders/transform/transform.vert", "../src/shaders/transform/transform.frag");
 
+    // TextBlitter
+    // TextBlitter textBlitter;
+
     // Model
     // Model backpack("../res/models/backpack/backpack.obj"); 
     // Model backpack("../res/models/sponza/scene.gltf"); 
@@ -372,7 +376,11 @@ int main(){
         deltaTime = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
 
+        // render glyphs 
         // std::cout << "FPS: " << 1 / deltaTime << std::endl;
+        // textBlitter.RenderText("This is sample text", 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+        // textBlitter.RenderText("(C) LearnOpenGL.com", 540.0f, 570.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
+
 
         // process input
         process_input(window);
@@ -395,47 +403,6 @@ int main(){
         // ------------------MODEL-----------------
         // TEXTURED CUBE MODEL
         ourShader.use();
-
-        ourShader.setVec3("material.diffuse", glm::vec3(0.9f, 0.2f, 0.3f)); 
-        ourShader.setVec3("material.specular", glm::vec3(0.2f)); 
-        ourShader.setFloat("material.shininess", 32.0f);
-
-        // light properties
-        // ourShader.setVec3("light.position", lightPos); 
-        ourShader.setVec3("light.position", camera.Position); 
-        ourShader.setVec3("light.direction", camera.Front);
-        ourShader.setVec3("light.ambient", glm::vec3(0.4f)); 
-        ourShader.setVec3("light.diffuse", glm::vec3(1.0f)); 
-        ourShader.setVec3("light.specular", glm::vec3(1.0f)); 
-        ourShader.setFloat("light.constant", 1.0f);
-        ourShader.setFloat("light.linear", 0.09f);
-        ourShader.setFloat("light.quadratic", 0.032f);
-        ourShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-
-        // directional light
-        ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        ourShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-        ourShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-        ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-        // point light 1
-        ourShader.setVec3("pointLights[0].position", pointLightPositions[0]);
-        ourShader.setVec3("pointLights[0].ambient", 0.1f, 0.1f, 0.1f);
-        ourShader.setVec3("pointLights[0].diffuse", 0.0f, 0.9f, 0.0f);
-        ourShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-        ourShader.setFloat("pointLights[0].constant", 1.0f);
-        ourShader.setFloat("pointLights[0].linear", 0.09f);
-        ourShader.setFloat("pointLights[0].quadratic", 0.032f);
-        // spotLight
-        ourShader.setVec3("spotLight.position", camera.Position);
-        ourShader.setVec3("spotLight.direction", camera.Front);
-        ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        ourShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        ourShader.setFloat("spotLight.constant", 1.0f);
-        ourShader.setFloat("spotLight.linear", 0.09f);
-        ourShader.setFloat("spotLight.quadratic", 0.032f);
-        ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         // bind diffuseMap
         glActiveTexture(GL_TEXTURE0);
@@ -576,21 +543,21 @@ int main(){
         // Transform Controls
         //---------------------
         // X
-        glm::vec3 xAxis = glm::vec3(1.0f, 0.1f, 0.1f);
-        glm::vec3 yAxis = glm::vec3(0.1f, 1.0f, 0.1f);
-        glm::vec3 zAxis = glm::vec3(0.1f, 0.1f, 1.0f);
-
-        transformShader.use();
-        transformShader.setVec3("viewPos", camera.Position);
-        transformShader.setMat4("view", view);
-        transformShader.setMat4("projection", projection);
-        model = glm::mat4(1.0);
-        model = glm::translate(model, glm::vec3(0.0, 3.0, 0.0)); 
-        model = glm::scale(model, glm::vec3(0.3f, 0.01f, 0.01f));
-        transformShader.setMat4("model", model);
-
-        glBindVertexArray(CubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        // glm::vec3 xAxis = glm::vec3(1.0f, 0.1f, 0.1f);
+        // glm::vec3 yAxis = glm::vec3(0.1f, 1.0f, 0.1f);
+        // glm::vec3 zAxis = glm::vec3(0.1f, 0.1f, 1.0f);
+        //
+        // transformShader.use();
+        // transformShader.setVec3("viewPos", camera.Position);
+        // transformShader.setMat4("view", view);
+        // transformShader.setMat4("projection", projection);
+        // model = glm::mat4(1.0);
+        // model = glm::translate(model, glm::vec3(0.0, 3.0, 0.0)); 
+        // model = glm::scale(model, glm::vec3(0.3f, 0.01f, 0.01f));
+        // transformShader.setMat4("model", model);
+        //
+        // glBindVertexArray(CubeVAO);
+        // glDrawArrays(GL_TRIANGLES, 0, 36);
 
         //-------------------------------------------------------------------
         
